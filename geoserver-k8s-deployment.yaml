@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geoserver-deployment
+  labels:
+    app: geoserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: geoserver
+  template:
+    metadata:
+      labels:
+        app: geoserver
+    spec:
+      containers:
+      - name: geoservertest
+        image: geoservertest:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: "/geoserver-data"
+          name: geoserver-pv-storage
+
