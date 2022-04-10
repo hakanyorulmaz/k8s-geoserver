@@ -1,25 +1,61 @@
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: geoserver-service
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: geoserver
+  #type: LoadBalancer
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: geoserver-deployment
-  labels:
-    app: geoserver
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: geoserver
+
+# first startup must be use 1 replica
+  replicas: 30
   template:
     metadata:
       labels:
         app: geoserver
     spec:
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
       containers:
-      - name: geoservertest
-        image: geoservertest:latest
+      - name: geoserver
+        image: hakanyorulmaz/geoserver:2.15
         ports:
         - containerPort: 8080
         volumeMounts:
         - mountPath: "/geoserver-data"
-          name: geoserver-pv-storage
-
+          name: local
+      volumes:
+      - name: local
+        hostPath:
+          path: /static-storage/geoserverworkspace1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
